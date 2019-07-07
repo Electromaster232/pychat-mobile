@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.EditText;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import me.djelectro.pychat.utils.Request;
 
@@ -37,8 +39,11 @@ public class Login extends AppCompatActivity {
     private void executeLogin(String username, String password){
         try {
             res = webRequest.execute("https://chat.djelectro.me/getcookie", "username=" + username.replace("\n", "") + "&password=" + password.replace("\n", "")).get();
-        }catch (Exception e){
-            throw new RuntimeException(e);
+        }catch (ExecutionException e){
+            System.out.println("Execution Exception");
+            e.printStackTrace();
+        }catch (InterruptedException e){
+            e.printStackTrace();
         }
         String filename = "password";
         FileOutputStream outputStream;
@@ -47,7 +52,7 @@ public class Login extends AppCompatActivity {
             outputStream = openFileOutput(filename, Context.MODE_PRIVATE);
             outputStream.write(password.getBytes());
             outputStream.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -58,7 +63,7 @@ public class Login extends AppCompatActivity {
             outputStream2 = openFileOutput(filename2, Context.MODE_PRIVATE);
             outputStream2.write(username.getBytes());
             outputStream2.close();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

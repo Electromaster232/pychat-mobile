@@ -1,17 +1,24 @@
 package me.djelectro.pychat;
 
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Random;
 
 import javax.net.ssl.SSLContext;
@@ -26,6 +33,7 @@ public class Chat extends AppCompatActivity {
     Socket socket;
     String isGroup;
     String key;
+    TextView textViewToChange;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,8 +50,7 @@ public class Chat extends AppCompatActivity {
         else{
             isGroup = "no";
         }
-
-        final TextView textViewToChange = (TextView) findViewById(R.id.textView2);
+        textViewToChange = (TextView) findViewById(R.id.textView2);
         textViewToChange.setMovementMethod(new ScrollingMovementMethod());
         Toast.makeText(getApplicationContext(), "Talking to server...", Toast.LENGTH_LONG).show();
         // Create socket.io
@@ -77,25 +84,32 @@ public class Chat extends AppCompatActivity {
             getPrev.put("channel", getIntent().getStringExtra("channel"));
             getPrev.put("key", key);
             getPrev.put("group", isGroup);
+            getPrev.put("mobile", "yes");
             socket.emit("getprevmsg", getPrev);
 
 
 
-        } catch (Exception e){
-            throw new RuntimeException(e);
+        } catch (JSONException e){
+            e.printStackTrace();
+        }
+        catch (URISyntaxException e){
+            e.printStackTrace();
+        }
+        catch (NoSuchAlgorithmException e){
+            e.printStackTrace();
         }
         socket.on("chatrecieve", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
                     try {
-
+                        TextView textViewToChange = (TextView) findViewById(R.id.textView2);
                         JSONObject obj = (JSONObject) args[0];
                         String message = obj.getString("user_name").replace("<i class='fa fa-gavel'></i>", "\uD83D\uDD28") + " > " + obj.getString("message").replace("<p>", "").replace("</p>", "");
 
                         textViewToChange.append("\n" + message);
 
-                    }catch (Exception e){
-                        throw new RuntimeException(e);
+                    }catch (JSONException e){
+                        e.printStackTrace();
                     }
                 }
             });
@@ -105,24 +119,36 @@ public class Chat extends AppCompatActivity {
             @Override
             public void call(Object... args) {
                 try {
-
+                    TextView textViewToChange = (TextView) findViewById(R.id.textView2);
                     JSONObject obj = (JSONObject) args[0];
                     if(obj.getString("key").equals(key)){
-                        String message = obj.getString("user_name").replace("<i class='fa fa-gavel'></i>", "\uD83D\uDD28") + " > " + obj.getString("message").replace("<p>", "").replace("</p>", "");
-
-                        textViewToChange.append("\n" + message);
+                        String curr = textViewToChange.getText().toString();
+                        String message = curr + "\n" + obj.getString("user_name").replace("<i class='fa fa-gavel'></i>", "\uD83D\uDD28") + " > " + obj.getString("message").replace("<p>", "").replace("</p>", "");
+                        System.out.println(message);
+                        textViewToChange.setText(message);
                     }
 
 
-                }catch (Exception e){
-                    throw new RuntimeException(e);
+                }catch (JSONException e){
+                    e.printStackTrace();
                 }
+            }
+        });
+
+        EditText editText = (EditText) findViewById(R.id.editText);
+        editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
+                    //do what you want on the press of 'done'
+                    sendMessage();
+                }
+                return true;
             }
         });
     }
 
 
-    public void sendMessage(View view) {
+    public void sendMessage() {
         try {
             EditText editText = (EditText) findViewById(R.id.editText);
             String message = editText.getText().toString();
@@ -134,7 +160,7 @@ public class Chat extends AppCompatActivity {
             obj.put("group", isGroup);
             socket.emit("chatsend", obj);
             editText.setText("");
-        }catch (Exception e){
+        }catch (JSONException e){
             e.printStackTrace();
         }
     }

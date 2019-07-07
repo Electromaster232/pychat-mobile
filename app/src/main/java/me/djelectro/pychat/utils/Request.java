@@ -2,6 +2,7 @@ package me.djelectro.pychat.utils;
 
 import android.os.AsyncTask;
 
+import java.io.IOException;
 import java.net.URL;
 
 import java.io.BufferedReader;
@@ -55,8 +56,9 @@ public class Request extends AsyncTask<String, String, String>{
             //return result
             System.out.println(response.toString());
             return response.toString();
-        } catch (Exception e){
-            throw new RuntimeException(e);
+        } catch (IOException e){
+            e.printStackTrace();
+            return "";
         }
 
     }
