@@ -8,8 +8,8 @@
 
     <EditText
         android:id="@+id/editText"
-        android:layout_width="321dp"
-        android:layout_height="46dp"
+        android:layout_width="335dp"
+        android:layout_height="47dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="16dp"
@@ -17,9 +17,12 @@
         android:inputType="text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
+        android:linksClickable="true"
+        android:autoLink="web|email"
         android:id="@+id/textView2"
         android:layout_width="352dp"
         android:layout_height="604dp"
@@ -32,4 +35,14 @@
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/editText"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="65dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="136dp"
+        android:onClick="uploadFile"
+        android:text="File"
+        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintStart_toStartOf="@+id/editText" />
 </android.support.constraint.ConstraintLayout>

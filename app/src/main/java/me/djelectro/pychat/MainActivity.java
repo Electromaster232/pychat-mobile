@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void toRegister(View view){
-        new DisplayToast().displayToast(getApplicationContext(), "Sorry, this isn't implemented yet! Please use the website!");
+        Intent intent2 = new Intent(this, Register.class);
+        startActivity(intent2);
     }
 }

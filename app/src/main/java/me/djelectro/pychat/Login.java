@@ -11,16 +11,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
+import me.djelectro.pychat.utils.DisplayToast;
 import me.djelectro.pychat.utils.Request;
 
 public class Login extends AppCompatActivity {
     Request webRequest;
     String res;
+    DisplayToast displayToast;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         webRequest = new Request();
+        displayToast = new DisplayToast();
         if(getIntent().getStringExtra("username") == null){
         }
         else {
@@ -45,6 +48,11 @@ public class Login extends AppCompatActivity {
         }catch (InterruptedException e){
             e.printStackTrace();
         }
+        if(res.equals("Invalid username.") || res.equals("Incorrect Password")){
+            displayToast.displayToast(getApplicationContext(), "Your username or password was incorrect!");
+            return;
+        }
+
         String filename = "password";
         FileOutputStream outputStream;
 

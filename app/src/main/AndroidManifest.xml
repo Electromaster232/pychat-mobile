@@ -3,6 +3,7 @@
     package="me.djelectro.pychat">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:allowBackup="true"
@@ -11,8 +12,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ChannelSelect"></activity>
-        <activity android:name=".Chat" android:parentActivityName=".MainActivity"/>
+        <activity android:name=".Register"></activity>
+        <activity android:name=".ChannelSelect" />
+        <activity
+            android:name=".Chat"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".Login"
             android:parentActivityName=".MainActivity" />

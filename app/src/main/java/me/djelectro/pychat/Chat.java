@@ -1,15 +1,22 @@
 package me.djelectro.pychat;
 
-import android.content.Context;
+import android.Manifest;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
+import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,6 +24,11 @@ import android.widget.Toast;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
@@ -27,6 +39,7 @@ import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import me.djelectro.pychat.utils.CreateHttps;
+import me.djelectro.pychat.utils.Request;
 import okhttp3.OkHttpClient;
 
 public class Chat extends AppCompatActivity {
@@ -34,6 +47,9 @@ public class Chat extends AppCompatActivity {
     String isGroup;
     String key;
     TextView textViewToChange;
+    Integer permsGranted = 0;
+    Request webRequest;
+    private int PICK_IMAGE_REQUEST = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,6 +57,7 @@ public class Chat extends AppCompatActivity {
                 WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_chat);
+        webRequest = new Request();
         CreateHttps https = new CreateHttps();
         setTitle("#" + getIntent().getStringExtra("channel"));
 
@@ -102,11 +119,10 @@ public class Chat extends AppCompatActivity {
                 @Override
                 public void call(Object... args) {
                     try {
-                        TextView textViewToChange = (TextView) findViewById(R.id.textView2);
                         JSONObject obj = (JSONObject) args[0];
                         String message = obj.getString("user_name").replace("<i class='fa fa-gavel'></i>", "\uD83D\uDD28") + " > " + obj.getString("message").replace("<p>", "").replace("</p>", "");
 
-                        textViewToChange.append("\n" + message);
+                        appendText(message);
 
                     }catch (JSONException e){
                         e.printStackTrace();
@@ -119,13 +135,11 @@ public class Chat extends AppCompatActivity {
             @Override
             public void call(Object... args) {
                 try {
-                    TextView textViewToChange = (TextView) findViewById(R.id.textView2);
                     JSONObject obj = (JSONObject) args[0];
                     if(obj.getString("key").equals(key)){
-                        String curr = textViewToChange.getText().toString();
-                        String message = curr + "\n" + obj.getString("user_name").replace("<i class='fa fa-gavel'></i>", "\uD83D\uDD28") + " > " + obj.getString("message").replace("<p>", "").replace("</p>", "");
-                        System.out.println(message);
-                        textViewToChange.setText(message);
+                        String message = obj.getString("user_name").replace("<i class='fa fa-gavel'></i>", "\uD83D\uDD28") + " > " + obj.getString("message").replace("<p>", "").replace("</p>", "");
+                        //System.out.println(message);
+                        appendText(message);
                     }
 
 
@@ -134,6 +148,21 @@ public class Chat extends AppCompatActivity {
                 }
             }
         });
+
+        socket.on("imageurl", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                JSONObject obj = (JSONObject) args[0];
+                try {
+                    EditText editText = (EditText) findViewById(R.id.editText);
+                    editText.setText(editText.getText() + obj.getString("url"));
+                }catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
+        });
+
+
 
         EditText editText = (EditText) findViewById(R.id.editText);
         editText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -145,6 +174,13 @@ public class Chat extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    public void appendText(String newText){
+        TextView textViewToChange = (TextView) findViewById(R.id.textView2);
+        String curr = textViewToChange.getText().toString();
+        String message = curr + "\n" + newText;
+        textViewToChange.setText(message);
     }
 
 
@@ -164,6 +200,68 @@ public class Chat extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
+    public void uploadFile(View view){
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                    permsGranted);
+
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+
+        }
+        Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(i, PICK_IMAGE_REQUEST);
+
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(i, PICK_IMAGE_REQUEST);
+                }
+    }
+
+
+    private String encodeImage(Uri uri)
+    {
+        try {
+            InputStream inputStream = getApplicationContext().getContentResolver().openInputStream(uri);
+            Bitmap bm = BitmapFactory.decodeStream(inputStream);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] b = baos.toByteArray();
+            String encImage = Base64.encodeToString(b, Base64.DEFAULT);
+            //Base64.de
+            return encImage;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri uri = data.getData();
+            String encImage = encodeImage(uri);
+            socket.emit("image", encImage);
+        }
+    }
+
 
 
 }
