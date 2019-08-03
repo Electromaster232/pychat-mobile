@@ -25,9 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
@@ -54,7 +51,7 @@ public class Chat extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setSoftInputMode(
-                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_chat);
         webRequest = new Request();
@@ -181,6 +178,10 @@ public class Chat extends AppCompatActivity {
         String curr = textViewToChange.getText().toString();
         String message = curr + "\n" + newText;
         textViewToChange.setText(message);
+        while(textViewToChange.canScrollVertically(1)){
+            textViewToChange.scrollBy(0, 10);
+        }
+
     }
 
 

@@ -21,28 +21,33 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
-        android:linksClickable="true"
-        android:autoLink="web|email"
         android:id="@+id/textView2"
-        android:layout_width="352dp"
-        android:layout_height="604dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginBottom="36dp"
+        android:layout_width="339dp"
+        android:layout_height="601dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:autoLink="web|email"
+        android:fillViewport="true"
         android:gravity="bottom"
+        android:linksClickable="true"
         android:maxLength="999999"
-        android:maxLines="20"
+        android:maxLines="25000"
         android:scrollbars="vertical"
+        android:scrollHorizontally="true"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintBottom_toTopOf="@+id/button3"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/button3"
-        android:layout_width="65dp"
-        android:layout_height="36dp"
+        android:layout_width="58dp"
+        android:layout_height="41dp"
         android:layout_marginStart="136dp"
         android:onClick="uploadFile"
         android:text="File"
         app:layout_constraintBottom_toTopOf="@+id/editText"
         app:layout_constraintStart_toStartOf="@+id/editText" />
+
 </android.support.constraint.ConstraintLayout>
